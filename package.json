@@ -1,0 +1,17 @@
+{
+  "name": "clerestory",
+  "version": "1.0.0",
+  "description": "Context-free grammar tool for text generation inspired by Tracery",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Jon Custer",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "dependencies": {
+    "@joncuster/randomly": "^0.9.3"
+  }
+}
