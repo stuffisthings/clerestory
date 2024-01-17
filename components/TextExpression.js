@@ -53,6 +53,85 @@ module.exports = class TextExpression {
     }
     return symbolValue;
   }
+  doAction(action, symbolValue, useGrammar, args = []) {
+    console.log('doing', action, 'on', symbolValue, 'with', args);
+    if (!useGrammar?._actions[action]) {
+      console.warn('Reference to undefined action:', action);
+      return symbolValue;
+    } else {
+      return useGrammar._actions[action](symbolValue, ...args);
+    }
+  }
+  evaluateSymbol(symbolTag, useGrammar) {
+    console.log('evaluating', symbolTag);
+    // get the subject (part before the first conditional, if any)
+    let [subject, ...predicate] = symbolTag.split('?');
+    // expand the base value
+    let symbolValue = subject.replace(/([a-zA-z]*)/, (match, baseSymbol) =>
+      useGrammar[baseSymbol] ? useGrammar[baseSymbol].value : ''
+    );
+    // apply actions if any
+    // first recursively expand any symbol references that appear in arguments
+    symbolValue = symbolValue.replace(
+      /\#([a-zA-z\.]+)\#/g,
+      (match, innerTag) => {
+        return this.evaluateSymbol(innerTag, useGrammar);
+      }
+    );
+    // collect all the actions
+    const actions = [];
+    symbolValue = symbolValue.replace(/\.([^\.]*)/g, (match, actionTag) => {
+      // extract args if any
+      const args = [];
+      const action = actionTag.replace(/\((.*)\)/g, (match, argTag) => {
+        args.push(...argTag.split(','));
+        return '';
+      });
+      actions.push({ action, args });
+      return '';
+    });
+    // apply actions
+    symbolValue = actions.reduce(
+      (result, action) =>
+        this.doAction(action.action, result, useGrammar, action.args),
+      symbolValue
+    );
+    // apply conditional logic
+    if (predicate.length > 0) {
+      symbolValue = predicate
+        .join('')
+        .replace(/([\=\!][\=].*)/, (match, conditional) => {
+          // break it down to its parts
+          const operator = conditional.splice(0, 2).join('');
+          let [condition, predicate] = conditional.split('?');
+          let [trueResult, falseResult] = predicate.split(':');
+          console.log(
+            'processing conditional',
+            condition,
+            operator,
+            predicate,
+            'true:',
+            trueResult,
+            'false:',
+            falseResult
+          );
+          // process the condition, conditionvalue, and ternary (if any) as text expressions
+          condition = new TextExpression(condition, useGrammar).evaluate();
+          trueResult = new TextExpression(trueResult, useGrammar).evaluate();
+          falseResult = falseResult
+            ? new TextExpression(falseResult, useGrammar).evaluate()
+            : '';
+          // apply the operator
+          switch (operator) {
+            case '==':
+              return symbolValue == condition ? trueResult : falseResult;
+            case '!=':
+              return symbolValue != condition ? trueResult : falseResult;
+          }
+        });
+    }
+    return symbolValue;
+  }
   evaluate(grammar) {
     const useGrammar = grammar || this.defaultGrammar;
     let result = this.rawText;
@@ -60,6 +139,12 @@ module.exports = class TextExpression {
     result = result.replace(/\[(.*?)\]/g, (match, alternation) => {
       return useGrammar.rng.pickFrom(alternation.split('|'));
     });
+    // expand symbol references
+    result = result.replace(/\#(\S*)\#/g, (match, symbolTag) =>
+      this.evaluateSymbol(symbolTag, useGrammar)
+    );
+    return result;
+
     // then expand standalone symbol references
     result = result.replace(/\#([a-zA-z\.]*)\#/g, (match, symbolIdRaw) => {
       return this.processSymbolRef(symbolIdRaw, useGrammar);
@@ -71,7 +156,7 @@ module.exports = class TextExpression {
     });
     // process conditional shorthand, tags for condition value should already be expanded
     result = result.replace(
-      /\#([a-zA-z\.\=\!\&\|]*\?.*)\#/g,
+      /\#([a-zA-z\=\!\&\|]*\?.*)\#/g,
       (match, symbolIdRaw) => {
         // process the conditional
         const conditionalParts = symbolIdRaw.split('?');

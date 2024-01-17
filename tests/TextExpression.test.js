@@ -68,18 +68,18 @@ test('Evaulate symbol actions', () => {
   ).toBe("It's raining cats and DOGS!");
   expect(
     new TextExpression(
-      '#firstAnimal.s# eat #firstAnimal.join( food)# and #secondAnimal.s# eat #secondAnimal.join(food)#.',
+      '#firstAnimal.s# eat #firstAnimal.join(food)# and #secondAnimal.s# eat #secondAnimal.join(food)#.',
       symbolActionGrammar
     ).evaluate()
-  ).toBe('cats eat cat food and dogs eat dogfood.');
+  ).toBe('cats eat catfood and dogs eat dogfood.');
   // alternations in arguments
   expect([
-    'cats love cat food',
-    'cats love cat nip',
-    'cats love cat toys',
+    'cats love catfood',
+    'cats love catnip',
+    'cats love cattoys',
   ]).toContain(
     new TextExpression(
-      '#firstAnimal.s# love #firstAnimal.join( [food|nip|toys])#',
+      '#firstAnimal.s# love #firstAnimal.join([food|nip|toys])#',
       symbolActionGrammar
     ).evaluate()
   );
