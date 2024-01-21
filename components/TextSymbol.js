@@ -8,11 +8,11 @@
 const TextExpression = require('./TextExpression');
 module.exports = class TextSymbol {
   /**
-   *
+   * @param {String|TextExpression|String[]|TextExpression[]|Function} rules - the set of rules this symbol will use to generate its output. Should be either a valid expression or an array of
+   * such, or a function that accepts grammar as an (optional) argument and returns a valid expression
    * @param {Object} grammar - the Grammar this symbol belongs to, use to evaluate its rules and their expressions
-   * @param {String|Object|Array|Function} rules - the set of rules this symbol will use to generate its output. Should be either a valid string/object expression or an array of
-   * such strings.objects, or a function that accepts grammar as an (optional) argument and returns a valid expression
-   * @param {String} value - optionally set the value for this symbol (e.g. as an effect of another Rule)
+   * @param {String} [value] - optionally set the initial value for this symbol
+   * @param {Object} [config] - config option
    */
   constructor(rules = [], grammar, value, config) {
     this.grammar = grammar;
@@ -65,7 +65,9 @@ module.exports = class TextSymbol {
       this.rules = this.grammar.rng.shuffle(this.rules);
     }
   }
-  /** Select a rule to use to expand/flatten the symbol */
+  /** Select a rule to use to expand/flatten the symbol
+   * You could override this method to provide a custom rule selection approach.
+   */
   selectRule() {
     // if there is rule function, use that
     if (this.ruleFunc) return this.ruleFunc(this.grammar);
@@ -109,6 +111,7 @@ module.exports = class TextSymbol {
   /** Return a generated value based on the symbol's rules and current state of the grammar. If the value has already been set,
    * it will return that unless flatten === true, which will "re flatten" it to a new value.
    * @param {Boolean} flatten - optionally set the result as the symbol's new value (overwriting any set value)
+   * @returns {String} the expanded result
    */
   expand(flatten) {
     if (this.flattened && !flatten) return this.flatText;
@@ -117,7 +120,9 @@ module.exports = class TextSymbol {
     if (flatten) this.value = result;
     return result;
   }
-  /** Expand the symbol and set the result as its new value; returns the result */
+  /** Expand the symbol and set the result as its new value
+   * @returns {String} the flattened result
+   */
   flatten() {
     return this.expand(true);
   }

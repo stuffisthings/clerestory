@@ -1,14 +1,17 @@
-/** An Expression is a unit of parseable text that can be evaluated to produce some output or have some effects on its Grammar's state */
+const Grammar = require('./Grammar');
+
+/** An Expression is a unit of parseable text that can be evaluated to produce some output or have some effects on its Grammar's state
+ * @param {String} text - parseable expresison text
+ * @param {Grammar} grammar - the grammar this expression should use
+ * @param {Object} [config] - configuration options e.g. weight
+ */
 module.exports = class TextExpression {
   constructor(text, grammar, config) {
+    if (!grammar) throw new Error('No grammar supplied');
     this.defaultGrammar = grammar;
+    if (!text || typeof text !== 'string')
+      throw new Error('Invalid expression text', text);
     this.rawText = text;
-    // conditions should be an array of expressions that must all evaluate to truthy values for this expression to be evaluated
-    if (config?.conditions) {
-      this.conditions = config.conditions.map(
-        (condition) => new TextExpression(condition, grammar)
-      );
-    }
     this.weight = config?.weight || 1; // used for symbols with weighted distribution
   }
   evaluateSymbolRef(symbolTag, useGrammar) {
@@ -47,8 +50,6 @@ module.exports = class TextExpression {
       );
     }
     // expand the base value
-    // skip unexpanded symbols
-
     let symbolValue = symbolTag.replace(/([a-zA-z]*)/, (match, baseSymbol) =>
       useGrammar[baseSymbol] ? useGrammar[baseSymbol].value : ''
     );
@@ -69,6 +70,11 @@ module.exports = class TextExpression {
     }, symbolValue);
     return symbolValue;
   }
+  /**
+   *
+   * @param {Grammar} grammar - the grammar to use when evaluating this expression; defaults to the grammar set when it was created
+   * @returns {String} the result of evaluating the expression against the grammar
+   */
   evaluate(grammar) {
     const useGrammar = grammar || this.defaultGrammar;
     let result = this.rawText;
