@@ -39,14 +39,14 @@ test('Evaluate symbol references', () => {
 const commonActions = {
   uppercase: (phrase) => phrase.toUpperCase(),
   s: (phrase) => `${phrase}s`,
-  join: (phrase, ...addPhrase) => `${phrase}${addPhrase.join('')}`,
 };
-test('Evaulate symbol actions', () => {
+test('Evaulate symbol modifiers', () => {
   const symbolActionGrammar = {
     rng,
     firstAnimal: { value: 'cat' },
     secondAnimal: { value: 'dog' },
-    _actions: commonActions,
+    nutrition: { value: 'food' },
+    _modifiers: commonActions,
   };
   expect(
     new TextExpression(
@@ -66,30 +66,13 @@ test('Evaulate symbol actions', () => {
       symbolActionGrammar
     ).evaluate()
   ).toBe("It's raining cats and DOGS!");
+  // Handle null seperator
   expect(
     new TextExpression(
-      '#firstAnimal.s# eat #firstAnimal.join(food)# and #secondAnimal.s# eat #secondAnimal.join(food)#.',
+      '#firstAnimal.s# eat #firstAnimal#|#nutrition# and #secondAnimal.s# eat #secondAnimal#|#nutrition#',
       symbolActionGrammar
     ).evaluate()
-  ).toBe('cats eat catfood and dogs eat dogfood.');
-  // alternations in arguments
-  expect([
-    'cats love catfood',
-    'cats love catnip',
-    'cats love cattoys',
-  ]).toContain(
-    new TextExpression(
-      '#firstAnimal.s# love #firstAnimal.join([food|nip|toys])#',
-      symbolActionGrammar
-    ).evaluate()
-  );
-  // symbol references in arguments
-  expect(
-    new TextExpression(
-      '#firstAnimal.join(#secondAnimal#).s# are better than #secondAnimal.join(#firstAnimal.s#)# and #secondAnimal.join(#firstAnimal#,#secondAnimal#).s#',
-      symbolActionGrammar
-    ).evaluate()
-  ).toBe('catdogs are better than dogcats and dogcatdogs');
+  ).toBe('cats eat catfood and dogs eat dogfood');
 });
 test('Evaulate conditionals', () => {
   const conditionalGrammar = {
@@ -98,7 +81,7 @@ test('Evaulate conditionals', () => {
     woofAnimal: { value: 'dog' },
     dogSpeech: { value: 'woof!' },
     speech: { value: 'hello' },
-    _actions: {
+    _modifiers: {
       ...commonActions,
       is: (phrase, comparator) => phrase === comparator,
     },
@@ -106,49 +89,56 @@ test('Evaulate conditionals', () => {
   // equals
   expect(
     new TextExpression(
-      'The #animal# says #animal==dog?woof#!',
+      'The #animal# says #?animal=dog?woof#!',
       conditionalGrammar
     ).evaluate()
   ).toBe('The dog says woof!');
   // symbol reference as condition
   expect(
     new TextExpression(
-      'The #animal# says #animal==#woofAnimal#?woof#!',
+      'The #animal# says #?animal=#woofAnimal#?woof#!',
       conditionalGrammar
     ).evaluate()
   ).toBe('The dog says woof!');
-  // actions in condition
+  // modifiers in condition
   expect(
     new TextExpression(
-      'The #animal# says #animal.s.uppercase.join(DOGS)==DOGSDOGS?woof#!',
+      'The #animal# says #?animal.s.uppercase=DOGS?woof#!',
       conditionalGrammar
     ).evaluate()
   ).toBe('The dog says woof!');
   // symbol reference in predicate
   expect(
     new TextExpression(
-      'The #animal# says #animal==dog?#dogSpeech##!',
+      'The #animal# says #?animal=dog?#dogSpeech##!',
       conditionalGrammar
     ).evaluate()
   ).toBe('The dog says woof!!');
-  // actions in predicate
+  // modifiers in predicate
   expect(
     new TextExpression(
-      'The #animal# says #animal==dog?#dogSpeech.uppercase##!',
+      'The #animal# says #?animal=dog?#dogSpeech.uppercase##!',
       conditionalGrammar
     ).evaluate()
   ).toBe('The dog says WOOF!!');
+  // ternary option
+  expect(
+    new TextExpression(
+      'The #animal# says #?animal=cat?meow:#dogSpeech##!',
+      conditionalGrammar
+    ).evaluate()
+  ).toBe('The dog says woof!!');
   // nonexistant symbol refs evaluate falsey
   expect(
     new TextExpression(
-      'The #animal# says #ape==monkey?aii#!',
+      'The #animal# says #?ape=monkey?aii:hello#!',
       conditionalGrammar
     ).evaluate()
-  ).toBe('The dog says !');
+  ).toBe('The dog says hello!');
   // not
   expect(
     new TextExpression(
-      'The #animal# says #animal!=cat?woof#!',
+      'The #animal# says #!animal=cat?woof#!',
       conditionalGrammar
     ).evaluate()
   ).toBe('The dog says woof!');
