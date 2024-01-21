@@ -51,7 +51,7 @@ module.exports = class TextExpression {
     }
     // expand the base value
     let symbolValue = symbolTag.replace(/([a-zA-z]*)/, (match, baseSymbol) =>
-      useGrammar[baseSymbol] ? useGrammar[baseSymbol].value : ''
+      useGrammar.expandSymbol(baseSymbol)
     );
     // apply modifiers if any
     // collect all the modifiers in the chain

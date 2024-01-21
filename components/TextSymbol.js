@@ -43,8 +43,8 @@ module.exports = class TextSymbol {
     this.flatText = (
       expression instanceof TextExpression
         ? expression
-        : new TextExpression(expression)
-    ).evaluate(this.grammar);
+        : new TextExpression(expression, this.grammar)
+    ).evaluate();
     this.flattened = true;
   }
   /** Set or reset the rules for this symbol */

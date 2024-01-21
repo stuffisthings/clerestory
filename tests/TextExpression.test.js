@@ -1,7 +1,6 @@
 const TextExpression = require('../components/TextExpression.js');
 const Randomly = require('@joncuster/randomly');
 const rng = new Randomly.RNG();
-
 const plainText = "Why hello there, friend! How's it going (today)?";
 
 test('Return plain strings', () => {
@@ -19,8 +18,13 @@ test('Evaluate alternations', () => {
 test('Evaluate symbol references', () => {
   const symbolGrammar = {
     rng,
-    traveler: { value: 'Gandalf' },
-    greeting_casual: { value: 'Howdy' },
+    state: {
+      traveler: 'Gandalf',
+      greeting_casual: 'Howdy',
+    },
+    expandSymbol(key) {
+      return this.state[key];
+    },
   };
   expect(
     new TextExpression(
@@ -43,9 +47,14 @@ const commonActions = {
 test('Evaulate symbol modifiers', () => {
   const symbolActionGrammar = {
     rng,
-    firstAnimal: { value: 'cat' },
-    secondAnimal: { value: 'dog' },
-    nutrition: { value: 'food' },
+    state: {
+      firstAnimal: 'cat',
+      secondAnimal: 'dog',
+      nutrition: 'food',
+    },
+    expandSymbol(key) {
+      return this.state[key];
+    },
     _modifiers: commonActions,
   };
   expect(
@@ -77,10 +86,15 @@ test('Evaulate symbol modifiers', () => {
 test('Evaulate conditionals', () => {
   const conditionalGrammar = {
     rng,
-    animal: { value: 'dog' },
-    woofAnimal: { value: 'dog' },
-    dogSpeech: { value: 'woof!' },
-    speech: { value: 'hello' },
+    state: {
+      animal: 'dog',
+      woofAnimal: 'dog',
+      dogSpeech: 'woof!',
+      speech: 'hello',
+    },
+    expandSymbol(key) {
+      return this.state[key];
+    },
     _modifiers: {
       ...commonActions,
       is: (phrase, comparator) => phrase === comparator,
