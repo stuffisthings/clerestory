@@ -60,6 +60,15 @@ module.exports = class TextSymbol {
         ? new TextExpression(rule.text, this.grammar, rule)
         : new TextExpression(rule, this.grammar)
     );
+    // if using popWeighted, create dummy copies of the rules by weight
+    if (this.distribution === 'popWeighted') {
+      this.rules.forEach((rule) => {
+        let copies = rule.weight || 1;
+        for (let i = 1; i < copies; i += 1) {
+          this.rules.push(rule);
+        }
+      });
+    }
     // shuffle the rules if needed
     if (['shuffle', 'pop', 'popWeighted'].includes(this.distribution)) {
       this.rules = this.grammar.rng.shuffle(this.rules);
@@ -86,11 +95,11 @@ module.exports = class TextSymbol {
       this.distribution
     );
     // Start by selecting a random rule, or popping a rule off the stack (depending on distribution)
-    // TODO: handle weighted distributions
-    //const weighted = ['weighted','popWeighted'].includes(this.distribution);
     const nextRule = usePop
       ? this.rules.pop()
-      : this.grammar.rng.pickFrom(this.rules);
+      : this.grammar.rng[
+          this.distribution === 'weighted' ? 'pickFromWeighted' : 'pickFrom'
+        ](this.rules);
     this.rulesChecked += 1;
     // skip any rule that evaluates falsey
     if (nextRule && nextRule.evaluate()) {

@@ -14,6 +14,9 @@ test('Expand from a list of rules', () => {
   expect(['foo', 'bar']).toContain(
     new TextSymbol(['foo', 'bar'], mockGrammar).expand()
   );
+  expect(['foo', 'bar']).toContain(
+    new TextSymbol([{ text: 'foo' }, { text: 'bar' }], mockGrammar).expand()
+  );
 });
 
 test('Flatten a symbol', () => {
@@ -41,10 +44,69 @@ test('Use pop distribution', () => {
   const symbolA = new TextSymbol(['foo', 'bar'], mockGrammar, undefined, {
     distribution: 'pop',
   });
-  expect(['foo', 'bar']).toContain(symbolA.expand());
-  expect(['foo', 'bar']).toContain(symbolA.expand());
+  const firstValue = symbolA.expand();
+  expect(['foo', 'bar']).toContain(firstValue);
+  expect(symbolA.expand()).not.toBe(firstValue);
+  // exhausted rules should return empty string
   expect(symbolA.expand()).toBe('');
   // reset rules
   symbolA.reset();
   expect(['foo', 'bar']).toContain(symbolA.expand());
+});
+
+test('Use shuffle distribution', () => {
+  const symbolA = new TextSymbol(['A', 'B', 'C'], mockGrammar, undefined, {
+    distribution: 'shuffle',
+  });
+  const firstValue = symbolA.expand();
+  expect(['A', 'B', 'C']).toContain(firstValue);
+  const secondValue = symbolA.expand();
+  expect(secondValue).not.toBe(firstValue);
+  const thirdValue = symbolA.expand();
+  expect([firstValue, secondValue]).not.toContain(thirdValue);
+  // when "deck" is exhausted it should be reshuffled
+  expect(['A', 'B', 'C']).toContain(symbolA.expand());
+});
+
+test('Use weighted distribution', () => {
+  const weightedSymbol = new TextSymbol(
+    [
+      { text: 'foo', weight: 1000 },
+      { text: 'bar', weight: 1 },
+    ],
+    mockGrammar,
+    undefined,
+    {
+      distribution: 'weighted',
+    }
+  );
+  let fooCount = 0;
+  let barCount = 0;
+  for (let i = 0; i < 100; i += 1) {
+    const text = weightedSymbol.expand();
+    if (text === 'foo') fooCount += 1;
+    if (text === 'bar') barCount += 1;
+  }
+  expect(fooCount).toBeGreaterThan(barCount);
+});
+
+test('Use weighted pop distribution', () => {
+  const weightedPopSymbol = new TextSymbol(
+    [
+      { text: 'foo', weight: 4 },
+      { text: 'bar', weight: 1 },
+    ],
+    mockGrammar,
+    undefined,
+    {
+      distribution: 'popWeighted',
+    }
+  );
+  const results = [];
+  for (let i = 0; i < 6; i += 1) {
+    results.push(weightedPopSymbol.expand());
+  }
+  expect(results.filter((r) => r === 'foo').length).toBe(4);
+  expect(results.filter((r) => r === 'bar').length).toBe(1);
+  expect(results.filter((r) => r === '').length).toBe(1);
 });
