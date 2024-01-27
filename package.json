@@ -12,6 +12,6 @@
     "jest": "^29.7.0"
   },
   "dependencies": {
-    "@joncuster/randomly": "^0.9.3"
+    "@joncuster/randomly": "^1.0.0"
   }
 }
