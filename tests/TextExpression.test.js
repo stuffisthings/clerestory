@@ -22,9 +22,6 @@ test('Evaluate symbol references', () => {
       traveler: 'Gandalf',
       greeting_casual: 'Howdy',
     },
-    expandSymbol(key) {
-      return this.state[key];
-    },
   };
   expect(
     new TextExpression(
@@ -51,9 +48,6 @@ test('Evaulate symbol modifiers', () => {
       firstAnimal: 'cat',
       secondAnimal: 'dog',
       nutrition: 'food',
-    },
-    expandSymbol(key) {
-      return this.state[key];
     },
     _modifiers: commonActions,
   };
@@ -91,9 +85,6 @@ test('Evaulate conditionals', () => {
       woofAnimal: 'dog',
       dogSpeech: 'woof!',
       speech: 'hello',
-    },
-    expandSymbol(key) {
-      return this.state[key];
     },
     _modifiers: {
       ...commonActions,

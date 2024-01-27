@@ -19,7 +19,6 @@ test('Expand from a list of rules', () => {
 test('Flatten a symbol', () => {
   const symbolA = new TextSymbol(['foo', 'bar'], mockGrammar);
   const expanded = symbolA.expand(true);
-  expect(symbolA.expand()).toBe(expanded);
   expect(symbolA.value).toBe(expanded);
   // flatten with flatten method
   expect(['foo', 'bar']).toContain(

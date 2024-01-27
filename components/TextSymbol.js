@@ -108,13 +108,11 @@ module.exports = class TextSymbol {
       return this.selectRule();
     }
   }
-  /** Return a generated value based on the symbol's rules and current state of the grammar. If the value has already been set,
-   * it will return that unless flatten === true, which will "re flatten" it to a new value.
+  /** Return a generated value based on the symbol's rules and current state of the grammar.
    * @param {Boolean} flatten - optionally set the result as the symbol's new value (overwriting any set value)
    * @returns {String} the expanded result
    */
   expand(flatten) {
-    if (this.flattened && !flatten) return this.flatText;
     const rule = this.selectRule();
     const result = rule ? rule.evaluate(this.grammar) : '';
     if (flatten) this.value = result;

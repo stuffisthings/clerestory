@@ -9,7 +9,7 @@ module.exports = class TextExpression {
   constructor(text, grammar, config) {
     if (!grammar) throw new Error('No grammar supplied');
     this.defaultGrammar = grammar;
-    if (!text || typeof text !== 'string')
+    if (text === undefined || typeof text !== 'string')
       throw new Error('Invalid expression text', text);
     this.rawText = text;
     this.weight = config?.weight || 1; // used for symbols with weighted distribution
@@ -50,8 +50,9 @@ module.exports = class TextExpression {
       );
     }
     // expand the base value
-    let symbolValue = symbolTag.replace(/([a-zA-z]*)/, (match, baseSymbol) =>
-      useGrammar.expandSymbol(baseSymbol)
+    let symbolValue = symbolTag.replace(
+      /([a-zA-z]*)/,
+      (match, baseSymbol) => useGrammar.state[baseSymbol]
     );
     // apply modifiers if any
     // collect all the modifiers in the chain
