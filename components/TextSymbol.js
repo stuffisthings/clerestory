@@ -56,7 +56,7 @@ module.exports = class TextSymbol {
     if (Array.isArray(rules)) this.rules = rules;
     // convert all rules to expressions
     this.rules = this.rules.map((rule) =>
-      rule instanceof TextExpression
+      typeof rule === 'object'
         ? new TextExpression(rule.text, this.grammar, rule)
         : new TextExpression(rule, this.grammar)
     );
