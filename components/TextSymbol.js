@@ -80,7 +80,12 @@ module.exports = class TextSymbol {
    */
   selectRule() {
     // if there is rule function, use that
-    if (this.ruleFunc) return this.ruleFunc(this.grammar);
+    const { ruleFunc } = this;
+    if (ruleFunc)
+      return {
+        evaluate: (grammar) =>
+          new TextExpression(ruleFunc(grammar), grammar).evaluate(),
+      };
     // handle running out of rules
     if (this.rules.length === 0) {
       // if using shuffle, return the discards to the rules

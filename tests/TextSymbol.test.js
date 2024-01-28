@@ -108,3 +108,17 @@ test('Use weighted pop distribution', () => {
   expect(results.filter((r) => r === 'bar').length).toBe(1);
   expect(results.filter((r) => r === '').length).toBe(1);
 });
+
+test('Use fucntional rules', () => {
+  const expressions = ['foo', 'bar'];
+  const getExpression = () => expressions.pop();
+  const functionalSymbol = new TextSymbol(getExpression, mockGrammar);
+  const firstResult = functionalSymbol.expand();
+  expect(functionalSymbol.expand()).not.toBe(firstResult);
+  const getParseableExpression = () => '[foo|bar]';
+  const parseableFunctionSymbol = new TextSymbol(
+    getParseableExpression,
+    mockGrammar
+  );
+  expect(['foo', 'bar']).toContain(parseableFunctionSymbol.expand());
+});
