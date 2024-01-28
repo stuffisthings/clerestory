@@ -84,8 +84,7 @@ module.exports = class TextSymbol {
     if (this.rules.length === 0) {
       // if using shuffle, return the discards to the rules
       if (this.distribution === 'shuffle') {
-        // TODO: shuffle them
-        this.rules = [...this.usedRules];
+        this.rules = this.grammar.rng.shuffle(this.usedRules);
         this.usedRules = [];
         return this.selectRule();
       }
