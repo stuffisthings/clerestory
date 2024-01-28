@@ -12,13 +12,26 @@ const TextSymbol = require('./TextSymbol');
 const Randomly = require('@joncuster/randomly');
 module.exports = class Grammar {
   constructor(symbols, rng, config) {
-    this.symbols = Object.keys(symbols).reduce((sym, symKey) => {
-      const symbolDef = symbols[symKey];
-      const symbol = new TextSymbol(symbolDef, this); // TODO: allow symbols as objs?
-      return { ...sym, [symKey]: symbol };
-    }, {});
+    this.rng = rng || new Randomly.RNG(config?.seed);
+    this.symbols = {};
     // set up proxy to track new state being added
-    const createSymbol = (rules) => new TextSymbol(rules, this);
+    const createSymbol = (rules) => {
+      if (!rules) return new TextSymbol('', this);
+      if (
+        Array.isArray(rules) ||
+        typeof rules === 'string' ||
+        typeof rules === 'function'
+      ) {
+        return new TextSymbol(rules, this);
+      }
+      // assume object definition otherwise
+      return new TextSymbol(rules.rules, this, {
+        distribution: rules.distribution,
+      });
+    };
+    Object.keys(symbols).forEach((symRef) => {
+      this.symbols[symRef] = createSymbol(symbols[symRef]);
+    });
     const symbolHandler = {
       set(target, prop, value) {
         target[prop] = createSymbol(value);
@@ -28,7 +41,6 @@ module.exports = class Grammar {
       },
     };
     this.state = new Proxy(this.symbols, symbolHandler);
-    this.rng = rng || new Randomly.RNG(config?.seed);
     this.origin = config?.origin || 'origin'; // default key to start from
     this.output = '';
   }

@@ -34,3 +34,11 @@ test('Allow setting state from outside', () => {
   simpleGrammar.state.origin = "#greeting#, #traveler#, it's me, #nemesis#";
   expect(simpleGrammar.expand()).toBe("Yo, Bilbo, it's me, Sauron");
 });
+
+test('Specify config for symbols', () => {
+  const simpleGrammar = new Grammar({
+    traveler: { rules: ['Gandalf', 'Bilbo'], distribution: 'pop' },
+  });
+  expect(['Gandalf', 'Bilbo']).toContain(simpleGrammar.expand('traveler'));
+  expect(simpleGrammar.symbols.traveler.distribution).toBe('pop');
+});
