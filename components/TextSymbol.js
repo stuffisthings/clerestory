@@ -4,6 +4,8 @@
  * or by accessing directly, it can either be expanded or flattened.
  * Expanding a Symbol runs its rules and returns the resulting output.
  * Flattening a Symbol runs its rules and replaces the Symbol with its resulting output. The next time the Symbol is accessed, it will return the previously-generated value.
+ *
+ * TODO: watch change in distribution
  */
 const TextExpression = require('./TextExpression');
 module.exports = class TextSymbol {
@@ -11,13 +13,12 @@ module.exports = class TextSymbol {
    * @param {String|TextExpression|String[]|TextExpression[]|Function} rules - the set of rules this symbol will use to generate its output. Should be either a valid expression or an array of
    * such, or a function that accepts grammar as an (optional) argument and returns a valid expression
    * @param {Object} grammar - the Grammar this symbol belongs to, use to evaluate its rules and their expressions
-   * @param {String} [value] - optionally set the initial value for this symbol
    * @param {Object} [config] - config option
    */
-  constructor(rules = [], grammar, value, config) {
+  constructor(rules = [], grammar, config) {
     this.grammar = grammar;
-    this.flatText = value;
-    this.flattened = !!value;
+    this.flatText = null;
+    this.flattened = false;
     this.initialRules = rules;
     // supported distributions are:
     // random (default) -- all valid rules have an equal chance of being selected

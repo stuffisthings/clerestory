@@ -41,7 +41,7 @@ test('Manually set symbol value', () => {
 });
 
 test('Use pop distribution', () => {
-  const symbolA = new TextSymbol(['foo', 'bar'], mockGrammar, undefined, {
+  const symbolA = new TextSymbol(['foo', 'bar'], mockGrammar, {
     distribution: 'pop',
   });
   const firstValue = symbolA.expand();
@@ -55,7 +55,7 @@ test('Use pop distribution', () => {
 });
 
 test('Use shuffle distribution', () => {
-  const symbolA = new TextSymbol(['A', 'B', 'C'], mockGrammar, undefined, {
+  const symbolA = new TextSymbol(['A', 'B', 'C'], mockGrammar, {
     distribution: 'shuffle',
   });
   const firstValue = symbolA.expand();
@@ -75,7 +75,6 @@ test('Use weighted distribution', () => {
       { text: 'bar', weight: 1 },
     ],
     mockGrammar,
-    undefined,
     {
       distribution: 'weighted',
     }
@@ -97,7 +96,6 @@ test('Use weighted pop distribution', () => {
       { text: 'bar', weight: 1 },
     ],
     mockGrammar,
-    undefined,
     {
       distribution: 'popWeighted',
     }
