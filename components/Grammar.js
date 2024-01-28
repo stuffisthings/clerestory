@@ -11,29 +11,23 @@
 const TextSymbol = require('./TextSymbol');
 const Randomly = require('@joncuster/randomly');
 module.exports = class Grammar {
-  constructor(symbols, state = {}, rng, config) {
+  constructor(symbols, rng, config) {
     this.symbols = Object.keys(symbols).reduce((sym, symKey) => {
       const symbolDef = symbols[symKey];
-      const symbol = new TextSymbol(symbolDef, this); // TODO: allow symbols as objs
+      const symbol = new TextSymbol(symbolDef, this); // TODO: allow symbols as objs?
       return { ...sym, [symKey]: symbol };
     }, {});
-    this.state = state;
-    const getSymbol = (symKey) => this.symbols[symKey].value;
-    const setSymbol = (symKey, value) => (this.symbols[symKey].value = value);
-    Object.keys(symbols).forEach((symKey) => {
-      // skip symbols already defined in state
-      if (!this.state[symKey]) {
-        Object.defineProperty(this.state, symKey, {
-          get() {
-            return getSymbol(symKey);
-          },
-          set(value) {
-            setSymbol(symKey, value);
-          },
-          enumerable: true,
-        });
-      }
-    });
+    // set up proxy to track new state being added
+    const createSymbol = (rules) => new TextSymbol(rules, this);
+    const symbolHandler = {
+      set(target, prop, value) {
+        target[prop] = createSymbol(value);
+      },
+      get(target, prop) {
+        return target[prop].value;
+      },
+    };
+    this.state = new Proxy(this.symbols, symbolHandler);
     this.rng = rng || new Randomly.RNG(config?.seed);
     this.origin = config?.origin || 'origin'; // default key to start from
     this.output = '';
@@ -41,15 +35,11 @@ module.exports = class Grammar {
   /**
    * Expand the grammar from a specific key (defaults to origin)
    * @param {String} [symbolKey] - key to start from
-   * @param {Boolean} [force] - force re-expanding even if value already set
    * @returns {String} the resulting output
    */
-  expand(symbolKey, force) {
+  expand(symbolKey) {
     const useKey = symbolKey || this.origin;
-    const result =
-      force && this.symbols[useKey]
-        ? this.symbols[useKey].expand(true)
-        : this.state[useKey];
+    const result = this.symbols[useKey].expand();
     this.output = result;
     return result;
   }
