@@ -109,7 +109,7 @@ test('Use weighted pop distribution', () => {
   expect(results.filter((r) => r === '').length).toBe(1);
 });
 
-test('Use fucntional rules', () => {
+test('Allow functional rules', () => {
   const expressions = ['foo', 'bar'];
   const getExpression = () => expressions.pop();
   const functionalSymbol = new TextSymbol(getExpression, mockGrammar);
@@ -121,4 +121,19 @@ test('Use fucntional rules', () => {
     mockGrammar
   );
   expect(['foo', 'bar']).toContain(parseableFunctionSymbol.expand());
+});
+// We test this here because it depends on Symbol functionality
+test('Non-flattening reference syntax', () => {
+  const symbolGrammar = { rng, symbols: {} };
+  symbolGrammar.symbols.weather = new TextSymbol(
+    ['hot', 'cold', 'sunny', 'rainy'],
+    symbolGrammar,
+    { distribution: 'pop' }
+  );
+  symbolGrammar.symbols.origin = new TextSymbol(
+    "It's nice and #~weather# today",
+    symbolGrammar
+  );
+  const firstResult = symbolGrammar.symbols.origin.expand();
+  expect(symbolGrammar.symbols.origin.expand()).not.toBe(firstResult);
 });

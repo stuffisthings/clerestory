@@ -51,8 +51,14 @@ module.exports = class TextExpression {
     }
     // expand the base value
     let symbolValue = symbolTag.replace(
-      /([a-zA-z]*)/,
-      (match, baseSymbol) => useGrammar.state[baseSymbol]
+      /([\~a-zA-z]*)/,
+      (match, baseSymbol) => {
+        // handle non-flattening references
+        if (baseSymbol[0] === '~') {
+          return useGrammar.symbols[baseSymbol.replace('~', '')].expand();
+        }
+        return useGrammar.state[baseSymbol];
+      }
     );
     // apply modifiers if any
     // collect all the modifiers in the chain
