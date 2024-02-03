@@ -1,6 +1,6 @@
 {
   "name": "clerestory",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Context-free grammar tool for text generation inspired by Tracery",
   "main": "index.js",
   "scripts": {
